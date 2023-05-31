@@ -12,12 +12,12 @@
                         @csrf
 
                         <div class="row mb-3">
-                            <label for="name" class="col-md-4 col-form-label text-md-end">{{ __('Name') }}</label>
+                            <label for="employeeNo" class="col-md-4 col-form-label text-md-end">Employee Number</label>
 
                             <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
+                                <input id="employeeNo" type="text" class="form-control @error('employee_no') is-invalid @enderror" name="employee_no" value="{{ old('employee_no') }}" required>
 
-                                @error('name')
+                                @error('employee_no')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
@@ -61,9 +61,29 @@
                             </div>
                         </div>
 
+                        <div class="row mb-3">
+                            <label class="col-md-4 col-form-label text-md-end">First Name</label>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control formAutoFill" id="formFname" placeholder="No Employee Found" disabled>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label class="col-md-4 col-form-label text-md-end">Last Name</label>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control formAutoFill" id="formLname" placeholder="No Employee Found" disabled>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-md-4 col-form-label text-md-end">Position</label>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control formAutoFill" id="formPos" placeholder="No Employee Found" disabled>
+                            </div>
+                        </div>
+
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" id="formSubmit" class="btn btn-primary" disabled>
                                     {{ __('Register') }}
                                 </button>
                             </div>
@@ -74,4 +94,46 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('internal-scripts')
+<script>
+    $(document).ready( function () {
+        async function logJSONData() {
+            $('#formSubmit').prop('disabled', true);
+
+            if ($('#employeeNo').val() !== '') {
+                const response = await fetch("/api/employee-number/"+$('#employeeNo').val());
+                const jsonData = await response.json();
+
+                if (jsonData.data.length === 0) {
+                    $('.formAutoFill').val('');
+                } else {
+                    const data = jsonData.data;
+                    
+                    $('#formFname').val(data[0].first_name);
+                    $('#formLname').val(data[0].last_name);
+                    $('#formPos').val(data[0].user_position.name);
+
+                    $('#formSubmit').prop('disabled', false);
+                }
+            } else {
+                $('.formAutoFill').val('');
+            }
+        }
+
+        function delay(fn, ms) {
+            let timer = 500;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(fn.bind(this, ...args), ms || 500);
+            }
+        }
+
+        $('#employeeNo').keyup(delay(logJSONData));
+        if ($('#employeeNo').val() !== '') {
+            logJSONData();
+        }
+    } );
+</script>
 @endsection

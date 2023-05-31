@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'create_success' => 'Item(s) successfully created!',
+    'edit_success' => 'Item(s) successfully edited!',
+    'delete_success' => 'Item(s) successfully deleted!',
+    'decline_success' => 'Item(s) successfully declined!',
+    'restore_success' => 'Item(s) successfully restored!',
+    'approve_success' => 'Item(s) successfully approved!',
+    'dispose_success' => 'Item(s) successfully disposed!',
+    'request_success' => 'Item(s) successfully requested!',
+    'return_success' => 'Item(s) successfully returned!',
+    'withdraw_success' => 'Item(s) successfully withdrawn!',
+    'unavailable' => 'Not Available',
+    'register_error' => 'Invalid registration!',
+    'sure' => 'Are you sure?',
+    'sure_delete' => 'Are you sure you want to delete the selected property(ies)?',
+    'sure_dispose' => 'Are you sure you want to dispose the selected property(ies)?',
+    'sure_edit' => 'Are you sure you want to save the changes on the property?',
+    'sure_restore' => 'Are you sure you want to revert back the property?',
+    'sure_borrow' => 'Are you sure you want to borrow the selected properties?',
+    'sure_purchase' => 'Are you sure you want to make the purchase request for the selected properties?',
+    'sure_withdraw' => 'Are you sure you want to withdraw the selected requests?',
+    'sure_approve' => 'Are you sure you want to approve the selected requests?',
+    'sure_approve_2' => 'Are you sure you want to approve the selected requests? Please note that approving a borrow request will automatically reject other requests for the same property.',
+    'sure_return' => 'Are you sure you want to mark the selected requests as returned?',
+    'sure_decline' => 'Are you sure you want to decline the selected requests?',
+];

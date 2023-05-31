@@ -15,6 +15,9 @@
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+    <link href="{{ asset('scripts/DataTables/datatables.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
 </head>
 <body>
     <div id="app">
@@ -30,7 +33,82 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
-
+                        @guest
+                        @else
+                            @if (Auth::user()->userReference->is_admin)
+                                <li class="nav-item dropdown px-2">
+                                    <a class="nav-link dropdown-toggle {{ !empty($nav) && in_array($nav, ['users', 'users_deleted']) ? 'active' : '' }}" href="#" id="navbarUsers" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Users
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'users' ? 'active' : '' }}" href="{{ route('admin.users') }}">List</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'users_deleted' ? 'active' : '' }}" href="{{ route('admin.users').'?deleted=1' }}">Deleted</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown px-2">
+                                    <a class="nav-link dropdown-toggle {{ !empty($nav) && in_array($nav, ['properties', 'properties_disposed', 'property_categories']) ? 'active' : '' }}" href="#" id="navbarUsers" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Properties
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'properties' ? 'active' : '' }}" href="{{ route('admin.properties') }}">List</a></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'properties_disposed' ? 'active' : '' }}" href="{{ route('admin.properties').'?disposed=1' }}">Disposed</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'property_categories' ? 'active' : '' }}" href="{{ route('admin.property_categories') }}">Account Titles</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown px-2">
+                                    <a class="nav-link dropdown-toggle {{ !empty($nav) && in_array($nav, ['borrow_pending', 'borrow_borrowed', 'borrow_history', 'borrow_rejected']) ? 'active' : '' }}" href="#" id="navbarUsers" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Borrow
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'borrow_pending' ? 'active' : '' }}" href="{{ route('admin.borrow.pending') }}">Pending</a></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'borrow_borrowed' ? 'active' : '' }}" href="{{ route('admin.borrow.borrowed') }}">To Return</a></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'borrow_history' ? 'active' : '' }}" href="{{ route('admin.borrow.history') }}">History</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'borrow_rejected' ? 'active' : '' }}" href="{{ route('admin.borrow.rejected') }}">Rejected</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown px-2">
+                                    <a class="nav-link dropdown-toggle {{ !empty($nav) && in_array($nav, ['purchase_pending', 'purchase_history', 'purchase_rejected']) ? 'active' : '' }}" href="#" id="navbarUsers" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Purchase
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'purchase_pending' ? 'active' : '' }}" href="{{ route('admin.purchase.pending') }}">Pending</a></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'purchase_history' ? 'active' : '' }}" href="{{ route('admin.purchase.history') }}">History</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'purchase_rejected' ? 'active' : '' }}" href="{{ route('admin.purchase.rejected') }}">Rejected</a></li>
+                                    </ul>
+                                </li>
+                            @else
+                                <li class="nav-item dropdown px-2">
+                                    <a class="nav-link dropdown-toggle {{ !empty($nav) && in_array($nav, ['properties']) ? 'active' : '' }}" href="#" id="navbarUsers" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Properties
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'properties' ? 'active' : '' }}" href="{{ route('guest.properties') }}">List</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown px-2">
+                                    <a class="nav-link dropdown-toggle {{ !empty($nav) && in_array($nav, ['borrow_pending', 'borrow_history']) ? 'active' : '' }}" href="#" id="navbarUsers" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Borrow
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'borrow_pending' ? 'active' : '' }}" href="{{ route('guest.borrow.pending') }}">Pending</a></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'borrow_history' ? 'active' : '' }}" href="{{ route('guest.borrow.history') }}">History</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown px-2">
+                                    <a class="nav-link dropdown-toggle {{ !empty($nav) && in_array($nav, ['purchase_pending', 'purchase_history']) ? 'active' : '' }}" href="#" id="navbarUsers" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Purchase
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'purchase_pending' ? 'active' : '' }}" href="{{ route('guest.purchase.pending') }}">Pending</a></li>
+                                        <li><a class="dropdown-item {{ !empty($nav) && $nav == 'purchase_history' ? 'active' : '' }}" href="{{ route('guest.purchase.history') }}">History</a></li>
+                                    </ul>
+                                </li>
+                            @endif
+                        @endguest
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -51,9 +129,8 @@
                         @else
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
+                                    {{ Auth::user()->userReference->first_name.' '.Auth::user()->userReference->last_name }}
                                 </a>
-
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
@@ -73,8 +150,13 @@
         </nav>
 
         <main class="py-4">
+            <div class="container">
+                @include('layouts.notif')
+            </div>
             @yield('content')
         </main>
     </div>
+
+    @include('layouts.scripts')
 </body>
 </html>
