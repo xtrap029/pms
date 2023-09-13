@@ -32,6 +32,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::put('users/{user_reference}', [UserController::class, 'update'])->where('user_reference', '[0-9]+')->name('admin.users.update');
         Route::get('users/{user_reference}/delete', [UserController::class, 'destroy'])->where('user_reference', '[0-9]+')->name('admin.users.destroy');
         Route::get('users/{id}/restore', [UserController::class, 'restore'])->where('id', '[0-9]+')->name('admin.users.restore');
+        Route::post('users', [UserController::class, 'store'])->name('admin.users.store');
         
         Route::get('property-categories', [PropertyCategoryController::class, 'index'])->name('admin.property_categories');
         Route::put('property-categories/{property_category}', [PropertyCategoryController::class, 'update'])->where('property_category', '[0-9]+')->name('admin.property_categories.update');

@@ -11,7 +11,7 @@
                         <thead>
                             <tr>
                                 <th class="text-nowrap">Image</th>
-                                <th class="text-nowrap">Entity Name</th>
+                                <th class="text-nowrap">School</th>
                                 <th class="text-nowrap">Account Title</th>
                                 <th class="text-nowrap">Description</th>
                                 <th class="text-nowrap">Serial No.</th>
@@ -35,7 +35,7 @@
                                     <td class="text-nowrap">
                                         <img src="{{ '/storage/properties/'.$item->image }}" alt="" class="py-2" style="width: 50px">
                                     </td>
-                                    <td class="text-nowrap">{{ $item->entity_name }}</td>
+                                    <td>{{ $item->school->tag }}</td>
                                     <td class="batchSelectAttrTitle">{{ $item->propertyCategory->name }}</td>
                                     <td class="batchSelectAttrDescription">{{ $item->description }}</td>
                                     <td>{{ $item->serial_no }}</td>

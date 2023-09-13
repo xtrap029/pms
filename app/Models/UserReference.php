@@ -17,4 +17,8 @@ class UserReference extends Model {
     public function userPosition() {
         return $this->belongsTo(UserPosition::class);
     }
+
+    public function school() {
+        return $this->belongsTo(School::class);
+    }
 }

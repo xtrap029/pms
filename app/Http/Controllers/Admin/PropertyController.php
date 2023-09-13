@@ -12,10 +12,13 @@ use App\Models\PropertyUom;
 use App\Models\PropertyLocation;
 use App\Models\PropertyCondition;
 use App\Models\UserReference;
+use App\Models\School;
+
+use App\Helpers\UserHelper;
 
 class PropertyController extends Controller {
     public function index(Request $request) {
-        $items = Property::orderBy('entity_name', 'asc');
+        $items = Property::where('school_id', UserHelper::get_user_school_id())->orderBy('entity_name', 'asc');
 
         if ($request->disposed) {
             $items = $items->where('is_disposed', 1);
@@ -29,8 +32,9 @@ class PropertyController extends Controller {
         $uoms = PropertyUom::orderBy('name', 'asc')->get();
         $locations = PropertyLocation::orderBy('name', 'asc')->get();
         $conditions = PropertyCondition::orderBy('name', 'asc')->get();
-        $users = UserReference::orderBy('employee_no', 'asc')->get();
-        
+
+        $users = UserReference::where('school_id', UserHelper::get_user_school_id())->orderBy('employee_no', 'asc')->get();
+
         return view('admin.properties.index')->with([
             'nav' => $request->disposed ? 'properties_disposed' : 'properties',
             'items' => $items,
@@ -44,7 +48,6 @@ class PropertyController extends Controller {
 
     public function store(Request $request) {
         $data = $request->validate([
-            'entity_name' => ['required'],
             'property_category_id' => ['required', 'exists:property_categories,id'],
             'description' => ['required'],
             'property_uom_id' => ['required', 'exists:property_uoms,id'],
@@ -60,9 +63,13 @@ class PropertyController extends Controller {
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:10240'],
         ]);
         
-        $data['serial_no'] = str_pad(count(Property::where('description', $data['description'])->get())+1, 4, '0', STR_PAD_LEFT);
+        $logged_in = UserReference::where('user_id', auth()->id())->first();
+        $data['entity_name'] = $logged_in->school->name;
+        $data['school_id'] = $logged_in->school->id;
+
+        $data['serial_no'] = str_pad(count(Property::where('school_id', $logged_in->school_id)->where('description', $data['description'])->get())+1, 4, '0', STR_PAD_LEFT);
         $account_title = PropertyCategory::find($data['property_category_id']);
-        $data['property_no'] = date('Y', strtotime($data['date_added'])).'-'.$account_title->group.'-'.$account_title->account.'-'.$data['serial_no'].'-'.config('drops.auto_location');
+        $data['property_no'] = date('Y', strtotime($data['date_added'])).'-'.$account_title->group.'-'.$account_title->account.'-'.$data['serial_no'].'-'.$logged_in->school->code;
 
         if ($request->file('image')) {
             $data['image'] = basename($request->file('image')->store('public/properties/'));
@@ -74,9 +81,11 @@ class PropertyController extends Controller {
     }
     
     public function update(Request $request, Property $property) {
+        if (!$this->validate_command($property)) {
+            return abort(401);
+        }
         
         $data = $request->validate([
-            'entity_name' => ['required'],
             'property_category_id' => ['required', 'exists:property_categories,id'],
             'description' => ['required'],
             'property_uom_id' => ['required', 'exists:property_uoms,id'],
@@ -103,6 +112,10 @@ class PropertyController extends Controller {
     }
 
     public function dispose(Property $property) {
+        if (!$this->validate_command($property)) {
+            return abort(401);
+        }
+
         $property->update([
             'is_disposed' => true,
         ]);
@@ -119,6 +132,10 @@ class PropertyController extends Controller {
     }
 
     public function destroy(Property $property) {
+        if (!$this->validate_command($property)) {
+            return abort(401);
+        }
+
         $property->delete();
 
         return redirect()->route('admin.properties')->with('success', __('messages.delete_success'));
@@ -133,16 +150,25 @@ class PropertyController extends Controller {
         $ids = explode(',', $data['ids']);
 
         if ($data['type'] == 'dispose') {
-            Property::whereIn('id', $ids)->update([
+            Property::where('school_id', UserHelper::get_user_school_id())->whereIn('id', $ids)->update([
                 'is_disposed' => 1
             ]);
 
             return redirect()->route('admin.properties')->with('success', __('messages.dispose_success'));
         } else {
-            Property::whereIn('id', $ids)->delete();
+            Property::where('school_id', UserHelper::get_user_school_id())->whereIn('id', $ids)->delete();
 
             return redirect()->route('admin.properties')->with('success', __('messages.delete_success'));
         }
 
+    }
+
+    private function validate_command($property) {
+
+        if ($property->school_id != UserHelper::get_user_school_id()) {
+            return false;
+        }
+
+        return true;
     }
 }

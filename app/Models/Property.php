@@ -29,4 +29,8 @@ class Property extends Model {
     public function propertyCondition() {
         return $this->belongsTo(PropertyCondition::class)->withTrashed();
     }
+
+    public function school() {
+        return $this->belongsTo(School::class);
+    }
 }

@@ -25,20 +25,47 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
+        $school_id = $request->user()->userReference->school_id;
+
         if ($request->user()->userReference->is_admin) {
-            $properties = Property::orderBy('created_at', 'desc')->limit(5)->get();
-            $properties_borrow = Property::orderBy('count_borrow', 'desc')->limit(5)->get();
-            $properties_purchase = Property::orderBy('count_purchase', 'desc')->limit(5)->get();
-            $properties_to_return = PropertyBorrow::where('status', 1)->whereNull('return_actual_date')->orderBy('return_date', 'asc')->limit(5)->get();
-            $users = UserReference::orderBy('employee_no', 'asc')->get();
+            $properties = Property::where('school_id', $request->user()
+                ->userReference->school_id)
+                ->orderBy('created_at', 'desc')->limit(5)->get();
+            $properties_borrow = Property::where('school_id', $school_id)
+                ->orderBy('count_borrow', 'desc')->limit(5)->get();
+            $properties_purchase = Property::where('school_id', $school_id)
+                ->orderBy('count_purchase', 'desc')->limit(5)->get();
+            $properties_to_return = PropertyBorrow::where('status', 1)
+                ->whereNull('return_actual_date')
+                ->whereHas('property', function($q) use($school_id){
+                    $q->where('school_id', $school_id);
+                })
+                ->orderBy('return_date', 'asc')->limit(5)->get();
+            $users = UserReference::where('school_id', $school_id)
+                ->orderBy('employee_no', 'asc')->get();
 
             $counts = [
-                'borrow_pending' => PropertyBorrow::whereNull('status')->count(),
-                'purchase_pending' => PropertyPurchase::whereNull('status')->count(),
-                'borrow_past' => PropertyBorrow::where('status', 1)->whereNotNull('return_actual_date')->count(),
-                'purchase_past' => PropertyPurchase::where('status', 1)->count(),
+                'borrow_pending' => PropertyBorrow::whereNull('status')
+                    ->whereHas('property', function($q) use($school_id){
+                        $q->where('school_id', $school_id);
+                    })
+                    ->count(),
+                'purchase_pending' => PropertyPurchase::whereNull('status')
+                    ->whereHas('property', function($q) use($school_id){
+                        $q->where('school_id', $school_id);
+                    })
+                    ->count(),
+                'borrow_past' => PropertyBorrow::where('status', 1)
+                    ->whereHas('property', function($q) use($school_id){
+                        $q->where('school_id', $school_id);
+                    })
+                    ->whereNotNull('return_actual_date')->count(),
+                'purchase_past' => PropertyPurchase::where('status', 1)
+                    ->whereHas('property', function($q) use($school_id){
+                        $q->where('school_id', $school_id);
+                    })    
+                    ->count(),
             ];
 
             return view('homeAdmin')->with([
@@ -50,7 +77,7 @@ class HomeController extends Controller
                 'counts' => $counts,
             ]);
         } else {
-            $properties = Property::orderBy('created_at', 'desc')->limit(5)->get();
+            $properties = Property::where('school_id', $school_id)->orderBy('created_at', 'desc')->limit(5)->get();
             $pending_borrow = PropertyBorrow::where('requestor_id', $request->user()->userReference->id)->whereNull('status')->orderBy('created_at', 'desc')->limit(5)->get();
             $pending_purchase = PropertyPurchase::where('requestor_id', $request->user()->userReference->id)->whereNull('status')->orderBy('created_at', 'desc')->limit(5)->get();
             $properties_to_return = PropertyBorrow::where('status', 1)->where('requestor_id', $request->user()->userReference->id)->whereNull('return_actual_date')->orderBy('return_date', 'asc')->limit(5)->get();

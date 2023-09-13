@@ -11,7 +11,7 @@
                         <thead>
                             <tr>
                                 <th class="text-nowrap">Image</th>
-                                <th class="text-nowrap">Entity Name</th>
+                                <th class="text-nowrap">School</th>
                                 <th class="text-nowrap">Account Title</th>
                                 <th class="text-nowrap">Description</th>
                                 <th class="text-nowrap">Serial No.</th>
@@ -36,7 +36,7 @@
                                     <td class="text-nowrap">
                                         <img src="{{ '/storage/properties/'.$item->image }}" alt="" class="py-2" style="width: 50px">
                                     </td>
-                                    <td class="text-nowrap">{{ $item->entity_name }}</td>
+                                    <td class="text-nowrap">{{ $item->school->tag }}</td>
                                     <td>{{ $item->propertyCategory->name }}</td>
                                     <td>{{ $item->description }}</td>
                                     <td>{{ $item->serial_no }}</td>
@@ -101,8 +101,8 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-lg-12 mb-3">
-                                    <label class="form-label">Entity Name*</label>
-                                    <input type="text" class="form-control" name="entity_name" value="{{ $item->entity_name }}" readonly required>
+                                    <label class="form-label">School*</label>
+                                    <input type="text" class="form-control" value="{{ $item->school->name }}" readonly required>
                                 </div>
                                 <div class="col-lg-12 mb-3">
                                     <label class="form-label">Account Title*</label>
@@ -203,8 +203,8 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-lg-12 mb-3">
-                                <label class="form-label">Entity Name*</label>
-                                <input type="text" class="form-control" name="entity_name" value="{{ config('drops.auto_entity_name') }}" readonly required>
+                                <label class="form-label">School*</label>
+                                <input type="text" class="form-control" value="{{ Auth::user()->userReference->school->name }}" readonly required>
                             </div>
                             <div class="col-lg-12 mb-3">
                                 <label class="form-label">Account Title*</label>

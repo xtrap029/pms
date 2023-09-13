@@ -73,14 +73,14 @@
                             @foreach ($pending_borrow as $item)
                                 <tr>
                                     <td>
-                                        <img src="{{ '/storage/properties/'.$item->image }}" alt="" class="rounded" style="width: 30px">
+                                        <img src="{{ '/storage/properties/'.$item->property->image }}" alt="" class="rounded" style="width: 30px">
                                     </td>
                                     <td>
                                         {{ $item->property->description }}<br>
                                         <span class="text-black-50">{{ $item->property->propertyCategory->name }}</span>                                        
                                     </td>
                                     <td class="text-end">
-                                        {{ $item->date_added }}<br>
+                                        {{ Carbon::parse($item->created_at)->format('Y-m-d') }}<br>
                                         <span class="text-black-50">Date Added</span>    
                                     </td>
                                 </tr>
@@ -109,7 +109,7 @@
                                         <span class="text-black-50">{{ $item->property->propertyCategory->name }}</span>                                        
                                     </td>
                                     <td class="text-end">
-                                        {{ Carbon::parse($item->created_at)->format('m-d-Y') }}<br>
+                                        {{ Carbon::parse($item->created_at)->format('Y-m-d') }}<br>
                                         <span class="text-black-50">Requested Date</span>    
                                     </td>
                                 </tr>

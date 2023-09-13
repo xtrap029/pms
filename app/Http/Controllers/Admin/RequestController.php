@@ -10,9 +10,16 @@ use App\Models\PropertyBorrow;
 use App\Models\PropertyPurchase;
 use App\Models\UserReference;
 
+use App\Helpers\UserHelper;
+
 class RequestController extends Controller {
     public function borrow_pending(Request $request) {
-        $items = PropertyBorrow::whereNull('status')->orderBy('created_at', 'desc')->get();
+        $school_id = UserHelper::get_user_school_id();
+        $items = PropertyBorrow::whereNull('status')
+            ->whereHas('property', function($q) use($school_id){
+                $q->where('school_id', $school_id);
+            })
+            ->orderBy('created_at', 'desc')->get();
         
         return view('admin.borrow.pending')->with([
             'nav' => 'borrow_pending',
@@ -28,6 +35,12 @@ class RequestController extends Controller {
         $ids = explode(',', $data['ids']);
 
         foreach ($ids as $key => $value) {
+            $validate_property = PropertyBorrow::where('id', $value)->whereNull('status')->first();
+            
+            if (!$validate_property || !$this->validate_command($validate_property->property)) {
+                return abort(401);
+            }
+
             PropertyBorrow::where('id', $value)->whereNull('status')->delete();
         }
 
@@ -44,6 +57,10 @@ class RequestController extends Controller {
         foreach ($ids as $key => $value) {
             $property_borrow = PropertyBorrow::find($value);
             $property = Property::find($property_borrow->property_id);
+            
+            if (!$property || !$this->validate_command($property)) {
+                return abort(401);
+            }
 
             // check if not borrowed
             if ($property_borrow && $property_borrow->status == NULL && $property && $property->is_available) {
@@ -81,6 +98,12 @@ class RequestController extends Controller {
         $ids = explode(',', $data['ids']);
 
         foreach ($ids as $key => $value) {
+            $validate_property = PropertyBorrow::where('id', $value)->whereNull('status')->first();
+            
+            if (!$validate_property || !$this->validate_command($validate_property->property)) {
+                return abort(401);
+            }
+            
             PropertyBorrow::where('id', $value)->whereNull('status')->update([
                 'status' => 0,
                 'status_date' => NOW(),
@@ -92,7 +115,13 @@ class RequestController extends Controller {
     }
 
     public function borrow_borrowed(Request $request) {
-        $items = PropertyBorrow::where('status', 1)->whereNull('return_actual_date')->orderBy('return_date', 'asc')->get();
+        $school_id = UserHelper::get_user_school_id();
+        $items = PropertyBorrow::where('status', 1)
+            ->whereNull('return_actual_date')
+            ->whereHas('property', function($q) use($school_id){
+                $q->where('school_id', $school_id);
+            })
+            ->orderBy('return_date', 'asc')->get();
         
         return view('admin.borrow.borrowed')->with([
             'nav' => 'borrow_borrowed',
@@ -110,6 +139,10 @@ class RequestController extends Controller {
         foreach ($ids as $key => $value) {
             $property_borrow = PropertyBorrow::where('id', $value)->where('status', 1)->whereNull('return_actual_date')->first();
 
+            if (!$property_borrow || !$this->validate_command($property_borrow->property)) {
+                return abort(401);
+            }
+
             $property_borrow->update([
                 'return_actual_date' => NOW(),
             ]);
@@ -124,7 +157,13 @@ class RequestController extends Controller {
     }
 
     public function borrow_history(Request $request) {
-        $items = PropertyBorrow::where('status', 1)->whereNotNull('return_actual_date')->orderBy('created_at', 'desc')->get();
+        $school_id = UserHelper::get_user_school_id();
+        $items = PropertyBorrow::where('status', 1)
+            ->whereNotNull('return_actual_date')
+            ->whereHas('property', function($q) use($school_id){
+                $q->where('school_id', $school_id);
+            })
+            ->orderBy('created_at', 'desc')->get();
         
         return view('admin.borrow.history')->with([
             'nav' => 'borrow_history',
@@ -133,7 +172,12 @@ class RequestController extends Controller {
     }
 
     public function borrow_rejected(Request $request) {
-        $items = PropertyBorrow::where('status', 0)->orderBy('created_at', 'desc')->get();
+        $school_id = UserHelper::get_user_school_id();
+        $items = PropertyBorrow::where('status', 0)
+            ->whereHas('property', function($q) use($school_id){
+                $q->where('school_id', $school_id);
+            })
+            ->orderBy('created_at', 'desc')->get();
         
         return view('admin.borrow.rejected')->with([
             'nav' => 'borrow_rejected',
@@ -153,6 +197,10 @@ class RequestController extends Controller {
 
             $property = Property::withTrashed()->where('id', $property_borrow->property_id)->first();
 
+            if (!$property || !$this->validate_command($property)) {
+                return abort(401);
+            }
+
             if ($property->deleted_at == NULL && $property->is_available == 1 && $property->status == 1 && $property->is_disposed == 0) {
                 $property_borrow->update([
                     'status' => NULL,
@@ -166,7 +214,12 @@ class RequestController extends Controller {
     }
 
     public function purchase_pending(Request $request) {
-        $items = PropertyPurchase::whereNull('status')->orderBy('created_at', 'desc')->get();
+        $school_id = UserHelper::get_user_school_id();
+        $items = PropertyPurchase::whereNull('status')
+            ->whereHas('property', function($q) use($school_id){
+                $q->where('school_id', $school_id);
+            })
+            ->orderBy('created_at', 'desc')->get();
         
         return view('admin.purchase.pending')->with([
             'nav' => 'purchase_pending',
@@ -182,6 +235,12 @@ class RequestController extends Controller {
         $ids = explode(',', $data['ids']);
 
         foreach ($ids as $key => $value) {
+            $property_purchase = PropertyPurchase::where('id', $value)->whereNull('status')->first();
+
+            if (!$property_purchase || !$this->validate_command($property_purchase->property)) {
+                return abort(401);
+            }
+
             PropertyPurchase::where('id', $value)->whereNull('status')->delete();
         }
 
@@ -198,6 +257,10 @@ class RequestController extends Controller {
         foreach ($ids as $key => $value) {
             $property_purchase = PropertyPurchase::find($value);
             $property = Property::find($property_purchase->property_id);
+
+            if (!$property || !$this->validate_command($property)) {
+                return abort(401);
+            }
 
             // check if existing
             if ($property_purchase && $property_purchase->status == NULL && $property) {
@@ -227,6 +290,12 @@ class RequestController extends Controller {
         $ids = explode(',', $data['ids']);
 
         foreach ($ids as $key => $value) {
+            $property_purchase = PropertyPurchase::where('id', $value)->whereNull('status')->first();
+
+            if (!$property_purchase || !$this->validate_command($property_purchase->property)) {
+                return abort(401);
+            }
+
             PropertyPurchase::where('id', $value)->whereNull('status')->update([
                 'status' => 0,
                 'status_date' => NOW(),
@@ -238,7 +307,12 @@ class RequestController extends Controller {
     }
 
     public function purchase_history(Request $request) {
-        $items = PropertyPurchase::where('status', 1)->orderBy('created_at', 'desc')->get();
+        $school_id = UserHelper::get_user_school_id();
+        $items = PropertyPurchase::where('status', 1)
+            ->whereHas('property', function($q) use($school_id){
+                $q->where('school_id', $school_id);
+            })
+            ->orderBy('created_at', 'desc')->get();
         
         return view('admin.purchase.history')->with([
             'nav' => 'purchase_history',
@@ -247,7 +321,12 @@ class RequestController extends Controller {
     }
 
     public function purchase_rejected(Request $request) {
-        $items = PropertyPurchase::where('status', 0)->orderBy('created_at', 'desc')->get();
+        $school_id = UserHelper::get_user_school_id();
+        $items = PropertyPurchase::where('status', 0)
+            ->whereHas('property', function($q) use($school_id){
+                $q->where('school_id', $school_id);
+            })
+            ->orderBy('created_at', 'desc')->get();
         
         return view('admin.purchase.rejected')->with([
             'nav' => 'purchase_rejected',
@@ -266,6 +345,10 @@ class RequestController extends Controller {
             $property_purchase = PropertyPurchase::where('id', $value)->where('status', 0)->first();
             $property = Property::withTrashed()->where('id', $property_purchase->property_id)->first();
 
+            if (!$property || !$this->validate_command($property)) {
+                return abort(401);
+            }
+
             if ($property->deleted_at == NULL) {
                 $property_purchase->update([
                     'status' => NULL,
@@ -276,5 +359,13 @@ class RequestController extends Controller {
         }
         
         return redirect()->route('admin.purchase.rejected')->with('success', __('messages.restore_success')); 
+    }
+
+    private function validate_command($property) {
+        if ($property->school_id != UserHelper::get_user_school_id()) {
+            return false;
+        }
+
+        return true;
     }
 }

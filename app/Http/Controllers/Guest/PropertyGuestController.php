@@ -10,9 +10,11 @@ use App\Models\PropertyBorrow;
 use App\Models\PropertyPurchase;
 use App\Models\UserReference;
 
+use App\Helpers\UserHelper;
+
 class PropertyGuestController extends Controller {
     public function index(Request $request) {
-        $items = Property::where('status', 1)->where('is_disposed', 0)->orderBy('entity_name', 'asc');
+        $items = Property::where('school_id', UserHelper::get_user_school_id())->where('status', 1)->where('is_disposed', 0)->orderBy('entity_name', 'asc');
 
         if (!$request->borrowed) {
             $items = $items->where('is_available', 1);
@@ -34,6 +36,11 @@ class PropertyGuestController extends Controller {
 
         foreach ($data['id'] as $key => $value) {
             $validate_property = Property::where('id', $value)->where('status', 1)->where('is_disposed', 0)->where('is_available', 1)->first();
+            
+            if (!$this->validate_command($validate_property)) {
+                return abort(401);
+            }
+
             $user_reference = UserReference::where('user_id', auth()->id())->first();
 
             if ($validate_property) {
@@ -92,6 +99,11 @@ class PropertyGuestController extends Controller {
 
         foreach ($data['id'] as $key => $value) {
             $validate_property = Property::where('id', $value)->where('status', 1)->where('is_disposed', 0)->first();
+
+            if (!$this->validate_command($validate_property)) {
+                return abort(401);
+            }
+
             $user_reference = UserReference::where('user_id', auth()->id())->first();
 
             if ($validate_property) {
@@ -138,6 +150,11 @@ class PropertyGuestController extends Controller {
             'purpose' => ['required'],
         ]);
 
+        $validate_property = Property::where('id', $property_purchase->property_id)->first();
+        if (!$this->validate_command($validate_property)) {
+            return abort(401);
+        }
+
         $property_purchase->update($data);
 
         return redirect()->route('guest.purchase.pending')->with('success', __('messages.edit_success'));
@@ -151,5 +168,13 @@ class PropertyGuestController extends Controller {
             'nav' => 'purchase_history',
             'items' => $items,
         ]);
+    }
+
+    private function validate_command($property) {
+        if ($property->school_id != UserHelper::get_user_school_id()) {
+            return false;
+        }
+
+        return true;
     }
 }
